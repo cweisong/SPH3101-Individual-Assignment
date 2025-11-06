@@ -5,8 +5,6 @@ library(gtsummary)
 library(tidyverse)
 library(flextable)
 library(gt)
-library(magick)
-
 
 # ---------------------------
 # INITIALIZE VARIABLES
@@ -63,92 +61,69 @@ vars_left <- c("maternal_age", "first_birth", "maternal_BMI", "maternal_educatio
 
 vars_right <- c( "religion", "region", "wealth_index", "toilet", "household_size")
 
-# ---------------------------
-# TABLE 1: BASELINE CHARACTERISTICS
-# ---------------------------
+# ---- 1) Split your variables ----
+vars_left_panel <- vars_left    # your predefined left vars
+vars_right_panel <- vars_right  # your predefined right vars
 
-# table_underweight <- bdhs_cl %>%
-#   tbl_summary(
-#     by = underweight,
-#     statistic = list(
-#       all_continuous() ~ "{median} [{p25}, {p75}]",
-#       all_categorical() ~ "{n} ({p}%)"
-#     ),
-#     missing_text = "(Missing)"
-#   ) %>%
-#   add_p(
-#     test = list(
-#       all_continuous() ~ "t.test",   # Use t-test for continuous vars
-#       all_categorical() ~ "chisq.test" # Chi-square for categorical
-#     )
-#   ) %>%
-#   add_n() %>%
-#   bold_labels() %>%
-#   italicize_levels() %>%
-#   modify_caption("**Table 1. Baseline characteristics by underweight status**")
-# 
-# # View in RStudio Viewer
-# table_underweight
-# 
-# # Convert gtsummary table to gt
-# gt_table <- as_gt(table_underweight)
-# 
-# # Save as PNG
-# gtsave(gt_table, filename = "Table1.png")
-
-table_left <- bdhs_cl %>%
-  select(all_of(c("underweight", vars_left))) %>%
-  tbl_summary(
-    by = underweight,
-    statistic = list(
-      all_continuous() ~ "{median} [{p25}, {p75}]",
-      all_categorical() ~ "{n} ({p}%)"
-    ),
-    missing_text = "(Missing)"
-  ) %>%
-  add_p(
-    test = list(
-      all_continuous() ~ "t.test",
-      all_categorical() ~ "chisq.test"
+# ---- 2) Function to create styled gt tables ----
+create_panel <- function(vars, caption_text) {
+  bdhs_cl %>%
+    select(all_of(c("underweight", vars))) %>%
+    tbl_summary(
+      by = underweight,
+      statistic = list(
+        all_continuous() ~ "{median} [{p25}, {p75}]",
+        all_categorical() ~ "{n} ({p}%)"
+      ),
+      missing_text = "(Missing)"
+    ) %>%
+    add_p(
+      test = list(
+        all_continuous() ~ "t.test",
+        all_categorical() ~ "chisq.test"
+      )
+    ) %>%
+    bold_labels() %>%
+    modify_caption(caption_text) %>%
+    modify_header(
+      stat_1 ~ "Underweight (n={n})",
+      stat_2 ~ "Not underweight (n={n})"
+    ) %>%
+    as_gt() %>%
+    opt_table_font(font = list(google_font("Arial"), default_fonts())) %>%
+    tab_style(
+      style = cell_borders(color = "white", sides = c("top", "bottom"), weight = px(0)),
+      locations = cells_body()
+    ) %>%
+    tab_options(
+      table.border.top.style = "solid",
+      table.border.top.width = px(1),
+      column_labels.border.bottom.style = "solid",
+      column_labels.border.bottom.width = px(1),
+      table.border.bottom.style = "solid",
+      table.border.bottom.width = px(1),
+      table.border.left.style = "none",
+      table.border.right.style = "none",
+      table.font.size = 10,
+      data_row.padding = px(2),
+      heading.align = "left"
     )
-  ) %>%
-  bold_labels() %>%
-  italicize_levels()
+}
 
-table_right <- bdhs_cl %>%
-  select(all_of(c("underweight", vars_right))) %>%
-  tbl_summary(
-    by = underweight,
-    statistic = list(
-      all_continuous() ~ "{median} [{p25}, {p75}]",
-      all_categorical() ~ "{n} ({p}%)"
-    ),
-    missing_text = "(Missing)"
-  ) %>%
-  add_p(
-    test = list(
-      all_continuous() ~ "t.test",
-      all_categorical() ~ "chisq.test"
-    )
-  ) %>%
-  bold_labels() %>%
-  italicize_levels()
-gt_left <- as_gt(table_left)
-gt_right <- as_gt(table_right)
+# ---- 3) Create left and right panels ----
+table_left <- create_panel(vars_left_panel, "**Table 1a (Panel 1)**")
+table_right<- create_panel(vars_right_panel, "**Table 1b (Panel 2)**")
 
-# Save temporary PNGs
-gtsave(gt_left, "temp_left.png")
-gtsave(gt_right, "temp_right.png")
-# Read images
-img_left <- image_read("temp_left.png")
-img_right <- image_read("temp_right.png")
+# ---- 4) Save temporary images ----
+gtsave(table_left, "left.png", zoom = 1.2)
+gtsave(table_right, "right.png", zoom = 1.2)
 
-# Append side by side
-img_combined <- image_append(c(img_left, img_right))
+# ---- 5) Combine side by side using magick ----
+left_img <- image_read("left.png")
+right_img <- image_read("right.png")
 
-# Save final PNG
-image_write(img_combined, path = "Table1_split.png")
-
+combined <- image_append(c(left_img, right_img))  # side-by-side
+image_write(combined, "Table1.png")
 
 # ---------------------------
 # VISUALIZATIONS
@@ -202,8 +177,8 @@ anova(model1, model2)
 
 # Interaction plot
 with(bdhs_cl, interaction.plot(
-  x.factor = education,
-  trace.factor = job,
+  x.factor = maternal_education,
+  trace.factor = maternal_job,
   response = waz,
   fun = mean,
   type = "b",
