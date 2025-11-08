@@ -5,6 +5,7 @@ library(gtsummary)
 library(tidyverse)
 library(flextable)
 library(gt)
+library(magick)
 
 # ---------------------------
 # INITIALIZE VARIABLES
@@ -86,8 +87,8 @@ create_panel <- function(vars, caption_text) {
     bold_labels() %>%
     modify_caption(caption_text) %>%
     modify_header(
-      stat_1 ~ "Underweight (n={n})",
-      stat_2 ~ "Not underweight (n={n})"
+      stat_1 ~"Not underweight (n={n})",
+      stat_2 ~ "Underweight (n={n})",
     ) %>%
     as_gt() %>%
     opt_table_font(font = list(google_font("Arial"), default_fonts())) %>%
