@@ -1,6 +1,5 @@
 # Load required libraries
 library(tableone)
-library(ggplot2)
 library(gtsummary)
 library(tidyverse)
 library(flextable)

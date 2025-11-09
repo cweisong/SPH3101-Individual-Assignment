@@ -1,5 +1,4 @@
 # Load libraries
-library(dplyr)
 library(finalfit)
 
 # ---------------------------
