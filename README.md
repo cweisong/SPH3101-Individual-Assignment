@@ -16,7 +16,7 @@ How are maternal and socio-demographics factors associated with underweight chil
 │   ├── 04-regression_prep.R                 # Regression helper functions
 │   ├── 04a-logistic_regression.R            # Logistic regression analysis
 │   ├── 04b-linear_regression.R              # Linear regression analysis
-│   ├── 05-regression_visualisation.R    # Logistic regression plots
+│   ├── 05-regression_visualisation.R        # Linear & logistic regression result (forest) plots
 ├── Data/
 │   └── bdhs.csv                             # Raw provided BDHS dataset
 └── Plots/                                   # Visualizations
